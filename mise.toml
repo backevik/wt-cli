@@ -1,0 +1,36 @@
+[tools]
+go = "1.23"
+
+[tasks.build]
+description = "Build the wt binary"
+run = "go build -o wt ."
+
+[tasks.install]
+description = "Build and install wt + Python helpers to ~/.local/bin"
+depends = ["build"]
+run = [
+  "cp wt ~/.local/bin/wt",
+  "cp scripts/iterm-worktree-open ~/.local/bin/iterm-worktree-open",
+  "cp scripts/worktree-cleanup-monitor.py ~/.local/bin/worktree-cleanup-monitor.py",
+  "chmod +x ~/.local/bin/iterm-worktree-open ~/.local/bin/worktree-cleanup-monitor.py",
+]
+
+[tasks.setup]
+description = "Full first-time setup: install binary, Python deps, and enable iTerm2 API"
+depends = ["install"]
+run = [
+  "python3 -c 'import iterm2' 2>/dev/null || pip3 install iterm2",
+  "defaults write com.googlecode.iterm2 EnablePythonApi -bool true",
+]
+
+[tasks.test]
+description = "Run tests"
+run = "go test ./..."
+
+[tasks.lint]
+description = "Run go vet"
+run = "go vet ./..."
+
+[tasks.clean]
+description = "Remove local build artifact"
+run = "rm -f wt"

@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+# iterm-worktree-open - Create 2x2 iTerm2 grid in new tab using Python API
+
+import iterm2
+import sys
+import os
+import subprocess
+import asyncio
+
+async def main(connection):
+    if len(sys.argv) < 2:
+        print("Usage: iterm-worktree-open <worktree-path> [setup-script]")
+        sys.exit(1)
+
+    worktree_path = sys.argv[1]
+    setup_script = sys.argv[2] if len(sys.argv) > 2 else None
+
+    app = await iterm2.async_get_app(connection)
+    window = app.current_terminal_window
+
+    if not window:
+        print("Error: No iTerm2 window found")
+        sys.exit(1)
+
+    # Create new tab
+    tab = await window.async_create_tab()
+
+    # Get the initial session (top-left pane)
+    top_left = tab.current_session
+
+    # Set tab title
+    await tab.async_set_title(f"🌳 {os.path.basename(worktree_path)}")
+
+    # Store worktree path in session variable for cleanup
+    await top_left.async_set_variable("user.WORKTREE_PATH", worktree_path)
+
+    # Change to worktree directory
+    await top_left.async_send_text(f"cd '{worktree_path}'\n")
+
+    # Run setup script if provided and wait for completion
+    if setup_script:
+        # Create a marker file to signal completion
+        marker_file = f"/tmp/wt-setup-{os.getpid()}.done"
+        await top_left.async_send_text(f"echo 'Running setup: {setup_script}' && {setup_script} && touch {marker_file}\n")
+
+        # Wait for setup to complete by checking for marker file
+        setup_done = False
+        max_wait = 300  # 5 minutes max
+        elapsed = 0
+        while not setup_done and elapsed < max_wait:
+            await asyncio.sleep(1)
+            elapsed += 1
+            if os.path.exists(marker_file):
+                setup_done = True
+                os.remove(marker_file)
+                await asyncio.sleep(0.5)  # Give it a moment to settle
+
+        if not setup_done:
+            print("Warning: Setup script timed out, continuing anyway...")
+    else:
+        # Small delay to let initial cd complete
+        await asyncio.sleep(0.5)
+
+    # Now create the other panes
+    # Split vertically to create right side (top-right pane)
+    top_right = await top_left.async_split_pane(vertical=True)
+    await top_right.async_set_variable("user.WORKTREE_PATH", worktree_path)
+    await top_right.async_send_text(f"cd '{worktree_path}'\n")
+
+    # Split top-left horizontally to create bottom-left
+    bottom_left = await top_left.async_split_pane(vertical=False)
+    await bottom_left.async_set_variable("user.WORKTREE_PATH", worktree_path)
+    await bottom_left.async_send_text(f"cd '{worktree_path}'\n")
+
+    # Split top-right horizontally to create bottom-right
+    bottom_right = await top_right.async_split_pane(vertical=False)
+    await bottom_right.async_set_variable("user.WORKTREE_PATH", worktree_path)
+    await bottom_right.async_send_text(f"cd '{worktree_path}'\n")
+
+    # After all panes are created, start Claude Code in top-left with cleanup monitor
+    monitor_script = os.path.expanduser("~/.local/bin/worktree-cleanup-monitor.py")
+    await top_left.async_send_text(f"python3 '{monitor_script}' '{worktree_path}' &>/dev/null & c\n")
+
+    print(f"✓ Opened worktree in iTerm2: {worktree_path}")
+
+if __name__ == "__main__":
+    iterm2.run_until_complete(main)
