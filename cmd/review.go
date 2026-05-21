@@ -65,7 +65,7 @@ Keybindings:
 		changedCmd.Dir = cwd
 		changedOut, _ := changedCmd.Output()
 		if len(changedOut) == 0 {
-			ui.Info("No changes against origin/%s", base)
+			ui.Step("clean — no changes against origin/%s", base)
 			return nil
 		}
 

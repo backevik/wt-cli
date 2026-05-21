@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/backevik/wt-cli/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -12,6 +11,6 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("wt version %s\n", version)
+		ui.Banner("wt " + version)
 	},
 }

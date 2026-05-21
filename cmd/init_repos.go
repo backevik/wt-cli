@@ -25,7 +25,7 @@ var initReposCmd = &cobra.Command{
 			initReposWorkDir = filepath.Join(home, "projects", "work")
 		}
 
-		ui.Info("Scanning %s for git repositories...", initReposWorkDir)
+		ui.Info("Scanning %s", initReposWorkDir)
 
 		entries, err := os.ReadDir(initReposWorkDir)
 		if err != nil {
@@ -63,9 +63,9 @@ var initReposCmd = &cobra.Command{
 			return fmt.Errorf("could not save config: %w", err)
 		}
 
-		ui.Success("Found %d repositories", len(repos))
+		ui.Success("Indexed %d repos", len(repos))
 		for _, r := range repos {
-			fmt.Printf("  %s → %s\n", r.Alias, r.Path)
+			ui.Step("%s → %s", r.Alias, r.Path)
 		}
 		return nil
 	},

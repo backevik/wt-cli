@@ -38,9 +38,9 @@ var newAliasCmd = &cobra.Command{
 		}
 		if repoPath == "" {
 			ui.Error("unknown alias %q", alias)
-			fmt.Println("Available aliases:")
+			ui.Info("Known aliases:")
 			for _, r := range cfg.Repos {
-				fmt.Printf("  %s → %s\n", r.Alias, r.Path)
+				ui.Step("%s → %s", r.Alias, r.Path)
 			}
 			return fmt.Errorf("alias not found: %s", alias)
 		}

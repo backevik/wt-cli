@@ -56,7 +56,7 @@ Run 'cd ~' or open a new tab.`,
 				return err
 			}
 			if !ok {
-				ui.Info("Aborted.")
+				ui.Step("aborted")
 				return nil
 			}
 		}
@@ -65,8 +65,8 @@ Run 'cd ~' or open a new tab.`,
 			return fmt.Errorf("failed to remove worktree: %w", err)
 		}
 
-		ui.Success("Worktree removed: %s", wtPath)
-		ui.Info("Note: your shell's cwd no longer exists — run 'cd ~' or open a new tab.")
+		ui.Success("Worktree nuked: %s", wtPath)
+		ui.Step("cwd is gone — run 'cd ~' or open a new tab")
 		return nil
 	},
 }

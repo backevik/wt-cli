@@ -83,15 +83,17 @@ func createWorktree(repoPath string, args []string) error {
 		if attempt == maxAttempts {
 			return fmt.Errorf("could not find a free worktree path after %d attempts", maxAttempts)
 		}
-		ui.Info("Path %s already exists, trying a different name...", wtPath)
+		ui.Warn("Path collision at %s, retrying", wtPath)
 	}
 
-	ui.Info("Fetching latest from origin/%s...", mainBranch)
+	ui.Info("Fetching origin/%s", mainBranch)
 	if err := git.Fetch(repoPath, mainBranch); err != nil {
 		return fmt.Errorf("fetch failed: %w", err)
 	}
 
-	ui.Info("Creating worktree: %s → %s", branchName, wtPath)
+	ui.Info("Spawning worktree")
+	ui.KeyValue("branch", branchName)
+	ui.KeyValue("path", wtPath)
 	if err := git.WorktreeAdd(repoPath, wtPath, branchName, "origin/"+mainBranch); err != nil {
 		return fmt.Errorf("worktree add failed: %w", err)
 	}
