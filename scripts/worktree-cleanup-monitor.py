@@ -4,9 +4,20 @@
 import iterm2
 import sys
 import os
+import json
 import shutil
 import subprocess
 import asyncio
+
+def _get_worktrees_dir():
+    config_path = os.path.expanduser("~/.config/worktree/repos.json")
+    try:
+        with open(config_path) as f:
+            cfg = json.load(f)
+        return cfg.get("worktrees_dir", os.path.expanduser("~/projects/work/worktrees"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return os.path.expanduser("~/projects/work/worktrees")
+
 
 async def main(connection):
     if len(sys.argv) < 2:
@@ -78,7 +89,7 @@ async def main(connection):
 
         # Fallback: remove directory if it still exists.
         # Safety guard: only delete paths under the expected worktrees base dir.
-        worktrees_base = os.path.expanduser("~/projects/work/worktrees")
+        worktrees_base = _get_worktrees_dir()
         real_path = os.path.realpath(worktree_path)
         real_base = os.path.realpath(worktrees_base)
         if os.path.exists(worktree_path) and real_path.startswith(real_base + os.sep):

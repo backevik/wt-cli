@@ -12,7 +12,9 @@ type Repo struct {
 }
 
 type Config struct {
-	Repos []Repo `json:"repos"`
+	WorkDir      string `json:"work_dir"`
+	WorktreesDir string `json:"worktrees_dir"`
+	Repos        []Repo `json:"repos"`
 }
 
 func ConfigPath() string {

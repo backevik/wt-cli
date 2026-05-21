@@ -52,7 +52,13 @@ var initReposCmd = &cobra.Command{
 			})
 		}
 
-		cfg := &config.Config{Repos: repos}
+		worktreesDir := filepath.Join(initReposWorkDir, "worktrees")
+
+		cfg := &config.Config{
+			WorkDir:      initReposWorkDir,
+			WorktreesDir: worktreesDir,
+			Repos:        repos,
+		}
 		if err := config.Save(cfg); err != nil {
 			return fmt.Errorf("could not save config: %w", err)
 		}

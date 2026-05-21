@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/backevik/wt-cli/internal/config"
 	"github.com/backevik/wt-cli/internal/git"
 	"github.com/backevik/wt-cli/internal/iterm"
 	"github.com/backevik/wt-cli/internal/namegen"
@@ -50,11 +51,14 @@ func createWorktree(repoPath string, args []string) error {
 		return fmt.Errorf("could not determine main branch: %w", err)
 	}
 
-	home, err := os.UserHomeDir()
+	cfg, err := config.Load()
 	if err != nil {
-		return fmt.Errorf("could not determine home directory: %w", err)
+		return fmt.Errorf("could not load config: %w", err)
 	}
-	worktreesBase := filepath.Join(home, "projects", "work", "worktrees")
+	if cfg.WorktreesDir == "" {
+		return fmt.Errorf("worktrees_dir not configured — run 'wt init-repos' first")
+	}
+	worktreesBase := cfg.WorktreesDir
 
 	// Attempt to create the worktree, retrying on path collision (auto-generated names only).
 	const maxAttempts = 3
